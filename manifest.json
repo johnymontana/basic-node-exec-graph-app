@@ -1,0 +1,13 @@
+{
+  "name": "Basic Node Executor",
+  "version": "1.0.0",
+  "start_url": ".",
+  "neo4jDesktop": {
+    "apiVersion": "^1.3.0"
+  },
+  "permissions": [
+    {
+      "backgroundProcess": "Allow background processes to see output of demo Node script"
+    }
+  ]
+}

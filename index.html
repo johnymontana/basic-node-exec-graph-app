@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Graph App Node Exec Example</title>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/purecss@1.0.0/build/pure-min.css"
+    />
+    <style>
+      #root {
+        margin: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <form class="pure-form pure-form-aligned" onsubmit="return false">
+        <div class="pure-control-group">
+          <label for="arguments">Arguments</label>
+          <input
+            id="arguments"
+            type="text"
+            placeholder="Arguments"
+            value="myArg"
+          />
+          <span class="pure-form-message-inline"
+            >Comma-separated arguments to pass</span
+          >
+        </div>
+
+        <div class="pure-controls">
+          <button type="submit" class="pure-button" onclick="executeNode()">
+            Execute Node
+          </button>
+        </div>
+
+        <h3>Result</h3>
+        <pre><code id="stdout"></code></pre>
+        <pre><code id="stderr"></code></pre>
+      </form>
+    </div>
+
+    <script>
+      function executeWithPermission(parameters) {
+        console.log("Starting Node process with params:");
+        console.log(JSON.stringify(parameters, null, 4));
+        window.neo4jDesktopApi
+          .requestPermission("backgroundProcess")
+          .then((granted) => {
+            if (granted) {
+              return window.neo4jDesktopApi.executeNode(parameters.filePath, parameters.args, {});
+            } else {
+              return Promise.reject("Execute permission denied.");
+            }
+          })
+          .then(showResult)
+          .catch((e) => console.error(e));
+      }
+
+      function parseArguments() {
+        const text = window.arguments.value;
+        return text.split(",");
+      }
+
+      function showResult(process) {
+        process.addOutListener((data) => (window.stdout.innerText = data));
+        process.addOutListener((data) => console.log(data));
+        process.addErrListener((data) => (window.stderr.innerText = data));
+        process.addErrListener((data) => console.log(data));
+      }
+
+      function executeNode() {
+        const parameters = {
+          filePath: "./dist/nodeScript.js",
+          args: parseArguments(),
+          //options: { cwd: "./", env: { DEBUG: "true" } },
+        };
+
+        executeWithPermission(parameters);
+      }
+    </script>
+  </body>
+</html>
